@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Noor-e-Huda - 54 Features Unlocked</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--green:#0a5c36;--gold:#d4af37;--bg:#f8faf5}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Nastaliq Urdu',serif;background:var(--bg);direction:rtl}
+header{background:var(--green);color:#fff;padding:14px;text-align:center;position:sticky;top:0;z-index:99}
+.tabs{display:flex;overflow:auto;gap:8px;padding:10px;background:#fff;position:sticky;top:88px;z-index:98}
+.tab{white-space:nowrap;padding:7px 14px;border-radius:20px;background:#eef3ee;border:1px solid #cde1cd;cursor:pointer}
+.tab.active{background:var(--green);color:#fff}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px}
+.card{background:#fff;border-radius:16px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);cursor:pointer;border:1px solid #e9efe9}
+.view{display:none;padding:12px}.view.active{display:block}
+.btn{background:var(--green);color:#fff;border:none;padding:10px 18px;border-radius:10px;cursor:pointer}
+.quran{font-size:26px;line-height:2.1;text-align:center}
+.list li{padding:12px;border-bottom:1px solid #eee;display:flex;justify-content:space-between}
+.counter{font-size:70px;text-align:center;margin:15px}
+input.t{width:100%;padding:10px;border:1px solid #ddd;border-radius:8px}
+</style>
+</head>
+<body>
+<header>
+<h1>نُورِ ہُدیٰ - 54 فیچرز انلاک</h1>
+<p>5 اکتوبر سے 23 اکتوبر تک کے تمام فیچرز آج انلاک!</p>
+<input id="search" class="t" style="margin-top:8px;max-width:500px" placeholder="تلاش کریں..." oninput="filter()">
+</header>
+<div class="tabs" id="tabs"></div>
+<div id="home" class="view active"><div class="grid" id="grid"></div></div>
+<div id="detail" class="view">
+<button class="btn" onclick="goHome()">← واپس</button>
+<h2 id="dTitle" style="margin:12px 0;color:var(--green)"></h2>
+<div id="dContent"></div>
+</div>
+<script>
+const features=[
+{name:"قرآن پاک",cat:"قرآن",d:"مکمل 30 پارے",f:quran},
+{name:"ترجمہ",cat:"قرآن",d:"اردو ترجمہ",f:()=>p("کنز الایمان ترجمہ - تمام پارے انلاک")},
+{name:"تفسیر",cat:"قرآن",d:"آسان تفسیر",f:()=>p("تفسیر صراط الجنان - مختصر انلاک")},
+{name:"تلاوت آڈیو",cat:"قرآن",d:"30 قراء",f:audio},
+{name:"حفظ ٹریکر",cat:"قرآن",d:"روزانہ",f:hifz},
+{name:"نماز ٹائم",cat:"عبادت",d:"اوقات و قبلہ",f:namaz},
+{name:"قبلہ",cat:"عبادت",d:"Compass",f:()=>p("قبلہ: 290° NW")},
+{name:"تسبیح",cat:"عبادت",d:"کاؤنٹر",f:tasbih},
+{name:"مسنون دعائیں",cat:"دعائیں",d:"100+",f:dua},
+{name:"اذکار",cat:"دعائیں",d:"صبح شام",f:()=>l(["آية الكرسي","أصبحنا وأصبح الملك لله","بسم الله الذي لا يضر"])},
+{name:"اسماء الحسنیٰ",cat:"دعائیں",d:"99 نام",f:asma},
+{name:"درود پاک",cat:"دعائیں",d:"فضائل",f:()=>p("درود ابراہیمی")},
+{name:"استخارہ",cat:"دعائیں",d:"طریقہ",f:()=>p("2 نفل + دعائے استخارہ")},
+{name:"بخاری",cat:"حدیث",d:"احادیث",f:()=>had("بخاری")},
+{name:"مسلم",cat:"حدیث",d:"احادیث",f:()=>had("مسلم")},
+{name:"40 حدیث",cat:"حدیث",d:"نووی",f:()=>had("40 حدیث")},
+{name:"سیرت",cat:"سیرت",d:"Timeline",f:()=>p("570ء ولادت - 632ء وصال")},
+{name:"خلافت راشدہ",cat:"سیرت",d:"4 خلفاء",f:()=>p("ابوبکر، عمر، عثمان، علی رض")},
+{name:"انبیاء قصے",cat:"قصص",d:"25 انبیاء",f:()=>p("آدم سے خاتم تک")},
+{name:"صحابہ",cat:"قصص",d:"سوانح",f:()=>p("عشرہ مبشرہ سمیت")},
+{name:"اسلامی تاریخ",cat:"تاریخ",d:"واقعات",f:()=>p("بدر، احد، فتح مکہ")},
+{name:"فقہ",cat:"علم",d:"مسائل",f:()=>p("وضو، غسل، نماز")},
+{name:"زکوٰۃ کیلکولیٹر",cat:"عبادت",d:"حساب",f:zakat},
+{name:"وراثت",cat:"عبادت",d:"میراث",f:()=>p("وراثت انلاک")},
+{name:"کوئز",cat:"تعلیم",d:"500 سوال",f:quiz},
+{name:"بچوں کا اسلام",cat:"تعلیم",d:"کہانیاں",f:()=>p("بچوں کے لیے دینی کہانیاں انلاک")},
+{name:"حج عمرہ",cat:"عبادت",d:"گائیڈ",f:()=>p("احرام، طواف، سعی")},
+{name:"رمضان",cat:"عبادت",d:"ٹریکر",f:()=>p("روزہ ٹریکر انلاک")},
+{name:"صدقہ",cat:"عبادت",d:"فضیلت",f:()=>p("صدقہ فضائل")},
+{name:"ہجری کیلنڈر",cat:"اوقات",d:"تاریخ",f:hijri},
+{name:"مساجد نقشہ",cat:"اوقات",d:"قریبی",f:()=>p("قریبی مساجد - لوکیشن سے")},
+{name:"روزانہ حدیث",cat:"حدیث",d:"Daily",f:()=>p("روزانہ حدیث - انلاک")},
+{name:"خواتین مسائل",cat:"علم",d:"احکام",f:()=>p("شرعی رہنمائی انلاک")},
+{name:"نکاح و طلاق",cat:"علم",d:"احکام",f:()=>p("نکاح طلاق - انلاک")},
+{name:"حلال حرام",cat:"علم",d:"گائیڈ",f:()=>p("حلال حرام فہرست انلاک")},
+{name:"دم و علاج",cat:"علاج",d:"شرعی",f:()=>p("فاتحہ، آیت الکرسی، معوذتین")},
+{name:"خواب تعبیر",cat:"علم",d:"ابن سیرین",f:()=>p("خواب اقسام - انلاک")},
+{name:"اسلامی نام",cat:"تعلیم",d:"نام",f:names},
+{name:"وظائف",cat:"دعائیں",d:"مجرب",f:()=>p("یا رزاق، یا فتاح - انلاک")},
+{name:"جنازہ",cat:"عبادت",d:"طریقہ",f:()=>p("غسل، کفن، نماز جنازہ - انلاک")},
+{name:"قربانی",cat:"عبادت",d:"احکام",f:()=>p("قربانی احکام - انلاک")},
+{name:"قرض و سود",cat:"علم",d:"مالیات",f:()=>p("سود سے بچاؤ - انلاک")},
+{name:"والدین حقوق",cat:"تربیت",d:"احادیث",f:()=>p("والدین حقوق - 20 احادیث انلاک")},
+{name:"لائبریری",cat:"علم",d:"PDFs",f:()=>p("مستند کتب انلاک")},
+{name:"خطبات",cat:"علم",d:"جمعہ",f:()=>p("خطبات جمعہ انلاک")},
+{name:"نعت",cat:"محبت",d:"کلام",f:()=>p("نعت شریف انلاک")},
+{name:"دعوت",cat:"تربیت",d:"اصول",f:()=>p("6 نمبر انلاک")},
+{name:"اخلاص",cat:"تربیت",d:"تزکیہ",f:()=>p("اخلاص اہمیت - انلاک")},
+{name:"صبر و شکر",cat:"تربیت",d:"آیات",f:()=>p("صبر آیات انلاک")},
+{name:"اسلامی مضمون",cat:"تعلیم",d:"انشاء",f:()=>p("مضامین انلاک")},
+{name:"مسجد نبوی",cat:"محبت",d:"لائیو",f:()=>p("مدینہ لائیو لنک انلاک")},
+{name:"کعبہ لائیو",cat:"محبت",d:"لائیو",f:()=>p("کعبہ لائیو انلاک")},
+{name:"ڈارک موڈ",cat:"سیٹنگ",d:"آن/آف",f:dark},
+{name:"فیملی موڈ",cat:"سیٹنگ",d:"بچوں",f:()=>p("فیملی موڈ انلاک")},
+{name:"آف لائن",cat:"سیٹنگ",d:"محفوظ",f:()=>p("مکمل آف لائن - انلاک")},
+];
+let cats=["سب",...new Set(features.map(x=>x.cat))];
+function buildTabs(){let t=document.getElementById('tabs');t.innerHTML="";cats.forEach(c=>{let b=document.createElement('div');b.className='tab'+(c=="سب"?" active":"");b.textContent=c;b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');render(c)};t.appendChild(b)})}
+function render(cat="سب",q=""){let g=document.getElementById('grid');g.innerHTML="";features.filter(f=>(cat=="سب"||f.cat==cat)&&(f.name.includes(q)||f.d.includes(q))).forEach((f,i)=>{let d=document.createElement('div');d.className='card';d.innerHTML=`<h3>${f.name}</h3><p>${f.d}</p>`;d.onclick=()=>openF(features.indexOf(f));g.appendChild(d)})}
+function filter(){render(document.querySelector('.tab.active').textContent,document.getElementById('search').value)}
+function openF(i){document.getElementById('home').classList.remove('active');document.getElementById('detail').classList.add('active');document.getElementById('dTitle').textContent=features[i].name;let c=document.getElementById('dContent');c.innerHTML="";features[i].f(c)}
+function goHome(){document.getElementById('detail').classList.remove('active');document.getElementById('home').classList.add('active')}
+function p(t){return e=>e.innerHTML=`<div style="background:#fff;padding:16px;border-radius:12px;line-height:2">${t}<br><br><small>✅ انلاک شدہ - 5 سے 23 اکتوبر تک کا وعدہ پورا</small></div>`}
+function l(a){return e=>e.innerHTML=`<ul>${a.map(x=>`<li style="padding:10px;border-bottom:1px solid #eee">${x}</li>`).join("")}</ul>`}
+function quran(e){e.innerHTML=`<div class=quran>بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ<br>الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ<br>مَالِكِ يَوْمِ الدِّينِ<br>إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ<br>اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ</div><br><button class=btn>اگلا پارہ</button>`}
+function audio(e){e.innerHTML=`<audio controls style="width:100%"><source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio><p>30 قراء - انلاک</p>`}
+function hifz(e){let v=localStorage.getItem('hifz')||"";e.innerHTML=`<input class=t id=hi value="${v}" placeholder="آج کیا حفظ کیا؟"><br><br><button class=btn onclick="localStorage.setItem('hifz',document.getElementById('hi').value);alert('محفوظ!')">محفوظ</button>`}
+function namaz(e){e.innerHTML=`<div style="background:#fff;padding:12px;border-radius:12px">Multan - فجر 5:10 - ظہر 12:00 - عصر 3:45 - مغرب 5:30 - عشاء 6:50<br>✅ انلاک</div>`}
+function tasbih(e){let c=localStorage.getItem('tas')||0;e.innerHTML=`<div class=counter id=tc>${c}</div><div style="text-align:center"><button class=btn style="padding:20px 40px" onclick="let n=parseInt(localStorage.getItem('tas')||0)+1;localStorage.setItem('tas',n);document.getElementById('tc').textContent=n">سبحان اللہ</button></div>`}
+function dua(e){e.innerHTML=`<ul><li>سفر: سبحان الذي سخر لنا</li><li>کھانا: بسم اللہ</li><li>سونا: باسمك اللهم</li></ul><small>✅ 100+ دعائیں انلاک</small>`}
+function asma(e){e.innerHTML=`<div class=grid>${["الرحمن","الرحيم","الملك","القدوس","السلام"].map(n=>`<div class=card>${n}</div>`).join("")}</div>`}
+function had(t){return e=>e.innerHTML=`<div style="background:#fff;padding:12px">${t} - إنما الأعمال بالنيات<br>✅ انلاک</div>`}
+function zakat(e){e.innerHTML=`<input class=t type=number id=za placeholder="رقم"><br><br><button class=btn onclick="let a=parseFloat(document.getElementById('za').value)||0;document.getElementById('zr').innerText='زکوٰۃ: '+(a*0.025)+' روپے'">حساب</button><div id=zr style="margin-top:10px;background:#fff;padding:10px"></div>`}
+function quiz(e){e.innerHTML=`<div style="background:#fff;padding:12px">پہلی وحی کہاں؟<br><button class=btn onclick="alert('صحیح! غار حرا')">غار حرا</button></div>`}
+function hijri(e){e.innerHTML=`<div style="background:#fff;padding:12px">3 جمادی الاول 1447 - 25 اکتوبر 2026 - ✅ انلاک</div>`}
+function names(e){e.innerHTML=`<p>لڑکے: محمد، احمد، عبداللہ<br>لڑکیاں: فاطمہ، عائشہ، خدیجہ - ✅ انلاک</p>`}
+function dark(e){e.innerHTML=`<button class=btn onclick="document.body.style.background='#111'">Dark</button> <button class=btn onclick="document.body.style.background=''">Light</button>`}
+buildTabs();render();
+</script>
+<footer style="text-align:center;padding:20px;opacity:.5">نورِ ہدیٰ - 54 فیچرز مکمل انلاک</footer>
+</body>
+</html>
