@@ -3,8 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>نُورِ ہُدٰی - 57 فیچرز - Voice + Location</title>
+<title>نُورِ ہُدٰی - دنیا کی ہر جگہ کی لوکیشن Voice</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Noto Nastaliq Urdu',serif}
 body{background:#062a20;color:#fff;padding:10px}
@@ -14,145 +16,163 @@ body{background:#062a20;color:#fff;padding:10px}
 .btn{width:100%;padding:12px;border:0;border-radius:10px;font-weight:bold;margin-top:8px;cursor:pointer;font-size:15px}
 .bg{background:#0a7a42;color:#fff}
 .bd{background:gold;color:#000}
-select,textarea,input{width:100%;padding:10px;border:2px solid #0a7a42;border-radius:10px;margin-top:8px;font-size:15px}
-.chat{max-height:350px;overflow-y:auto;background:#f0fdf4;border:2px solid #0a7a42;border-radius:12px;padding:8px;margin-top:10px}
-.msg{margin:8px 0;padding:10px;border-radius:10px;line-height:1.6}
-.user{background:#0a7a42;color:#fff;margin-left:20px}
-.bot{background:#ffeb80;border:1px solid gold;color:#111;margin-right:10px}
-.loc-box{background:#e8f5e9;border:2px dashed #0a7a42;border-radius:10px;padding:10px;margin-top:8px;text-align:center}
+input,select{width:100%;padding:12px;border:2px solid #0a7a42;border-radius:10px;margin-top:8px;font-size:16px}
+#map{height:300px;border-radius:12px;border:3px solid gold;margin-top:10px}
+.box{background:#e8f5e9;border:2px dashed #0a7a42;border-radius:10px;padding:12px;margin-top:8px;text-align:center;line-height:1.8}
+.dest{font-size:18px;color:#0a5c36;font-weight:bold}
 </style>
 </head>
 <body>
 <div class="hdr">
-<h1>نُورِ ہُدٰی - 57 فیچرز</h1>
-<p style="color:gold">AI دی دنیا اچ ہر زبان اچ اسلامی سوال + لوکیشن Voice</p>
-<p style="font-size:12px">Saraiki | Urdu | English | العربية | Hindi | Turkish - 100 Languages</p>
+<h1>نُورِ ہُدٰی - عالمی لوکیشن گائیڈ 🕋🌍</h1>
+<p style="color:gold">کوئی بھی جگہ لکھو - فاصلہ ہر KM تے آواز اچ دسیسی</p>
+</div>
+
+<div class="card" style="border-color:gold;border-width:4px">
+<h2>📍🕋 منزل لکھو - دنیا کے کسی کونے دی</h2>
+<input id="destInput" placeholder="مثال: Madina Haram, Makkah Haram, لاہور بادشاہی مسجد, دبئی برج خلیفہ"/>
+<div style="display:flex;gap:6px">
+<button class="btn bg" onclick="searchDest()" style="width:50%">🔍 جگہ لبھو</button>
+<button class="btn bd" onclick="useCurrent()" style="width:50%">📍 میری لوکیشن</button>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-top:8px">
+<button class="btn" style="background:#000;color:gold;border:1px solid gold" onclick="setDest('Madinah Haram Sharif, Saudi Arabia','مدینہ منورہ حرم شریف')">🕌 مدینہ</button>
+<button class="btn" style="background:#000;color:gold;border:1px solid gold" onclick="setDest('Makkah Haram Sharif, Saudi Arabia','مکہ مکرمہ حرم شریف')">🕋 مکہ</button>
+<button class="btn" style="background:#000;color:gold;border:1px solid gold" onclick="setDest('Masjid Al Aqsa, Jerusalem','مسجد اقصیٰ')">🕌 اقصیٰ</button>
+</div>
+<div id="info" class="box">کوئی منزل لکھو سئیں... پھر فاصلہ ہر کلومیٹر تے بول کر دسیساں!</div>
+<div id="map"></div>
+<button class="btn bg" onclick="startNav()">🚀 نیویگیشن شروع - ہر KM آواز</button>
+<button class="btn" style="background:red;color:white" onclick="stopNav()">🔇 نیویگیشن بند</button>
 </div>
 
 <div class="card">
-<h2>🤖 فیچر 57: ہر زبان اچ اسلامی سوال - AI جواب - Voice</h2>
-<select id="lng">
-<option value="saraiki">سرائیکی - Saraiki</option>
-<option value="ur">اردو - Urdu</option>
-<option value="en">English</option>
-<option value="ar">العربية</option>
-<option value="hi">Hindi</option>
-<option value="tr">Turkish</option>
-<option value="auto">Auto Detect</option>
-</select>
-<textarea id="q" rows="3" placeholder="مثال: نماز دی نیت کیویں؟ What is wudu? غسل کیسے؟"></textarea>
-<button class="btn bg" onclick="ask()">🤲 جواب گھنو - Ask AI</button>
-<button class="btn bd" onclick="voice()">🎤 بولو - Voice Input</button>
-<button class="btn" style="background:#ff9800;color:#000" onclick="speakLast()">🔊 جواب آواز اچ سُنو</button>
-<button class="btn" style="background:red;color:#fff" onclick="speechSynthesis.cancel()">🔇 آواز بند</button>
-<div id="chat" class="chat" style="display:none"></div>
-</div>
-
-<div class="card" style="border-color:gold">
-<h2>📍 فیچر: لوکیشن - ہر کلومیٹر تے آواز</h2>
-<p>تہاڈی لوکیشن ہر 1 KM تے بول کر بتائے گی!</p>
-<div id="loc" class="loc-box">لوکیشن اتھے آ ویسی سئیں...</div>
-<button class="btn bg" onclick="getloc()">📍 لوکیشن گھنو + ہر KM Voice</button>
-<button class="btn" style="background:red;color:white" onclick="stopLoc()">🔇 لوکیشن بند کرو</button>
-<p style="font-size:12px;margin-top:5px;color:green">نوٹ: Location Allow کرنی پوسی، تے موبائل دی آواز On رکھو!</p>
+<h2>🤖 اسلامی سوال - AI + Voice</h2>
+<input id="q" placeholder="سوال لکھو..."/>
+<button class="btn bg" onclick="ask()">جواب گھنو + آواز</button>
+<div id="ans" class="box" style="display:none"></div>
 </div>
 
 <script>
-let lastAnsText="";
-async function ask(){
-let q=document.getElementById('q').value.trim();
-if(!q){alert('سوال لکھو سئیں!');return;}
-let lang=document.getElementById('lng').value;
-let chat=document.getElementById('chat');
-chat.style.display='block';
-chat.innerHTML+=`<div class="msg user">👤 ${q}</div>`;
-chat.innerHTML+=`<div id="ld" class="msg bot">⏳ جواب تیار تھیندا پئے... آواز وی تیار اے...</div>`;
-chat.scrollTop=chat.scrollHeight;
-let prompt=`You are Noor-e-Huda Islamic scholar. Answer in ${lang}. If saraiki use pure Saraiki: سئیں، تساں، کیویں، ڈساں. User: ${q}. Give short Quran Sunnah answer.`;
-try{
-let res=await fetch('https://text.pollinations.ai/'+encodeURIComponent(prompt));
-let txt=await res.text();
-document.getElementById('ld').remove();
-lastAnsText=txt;
-chat.innerHTML+=`<div class="msg bot">🤲 ${txt.replace(/\n/g,'<br>')}<br><button onclick="speakLast()" style="margin-top:5px;background:green;color:white;border:0;padding:5px 10px;border-radius:5px">🔊 سُنو</button></div>`;
-speakText(txt, lang);
-}catch(e){
-document.getElementById('ld').remove();
-let fb='سئیں! '+q+' دا جواب: اسلام مکمل ضابطہ حیات اے، نماز، روزہ، زکوۃ، حج اللہ دے حکم ہن۔ اللہ تہاکوں خوش رکھے۔';
-lastAnsText=fb;
-chat.innerHTML+=`<div class="msg bot">🤲 ${fb}<br><button onclick="speakLast()" style="margin-top:5px;background:green;color:white;border:0;padding:5px 10px;border-radius:5px">🔊 سُنو</button></div>`;
-speakText(fb, lang);
-}
-chat.scrollTop=chat.scrollHeight;
-}
-function speakText(text, langCode){
+let map=L.map('map').setView([21.3891,39.8579],5);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+let userMarker=null, destMarker=null, destLat=null, destLon=null, destName="منزل";
+let watchId=null, totalTraveled=0, lastLat=null, lastLon=null, initialDistance=0;
+
+function speak(t, lang='ur-PK'){
 speechSynthesis.cancel();
-let u=new SpeechSynthesisUtterance(text);
-if(langCode=='en') u.lang='en-US';
-else if(langCode=='ar') u.lang='ar-SA';
-else if(langCode=='hi') u.lang='hi-IN';
-else if(langCode=='tr') u.lang='tr-TR';
-else u.lang='ur-PK';
-u.rate=0.85; u.pitch=1; u.volume=1;
+let u=new SpeechSynthesisUtterance(t);
+u.lang=lang; u.rate=0.85; u.volume=1;
 speechSynthesis.speak(u);
 }
-function speakLast(){
-if(!lastAnsText){alert('پہلے جواب گھنو!');return;}
-let lang=document.getElementById('lng').value;
-speakText(lastAnsText, lang);
+
+async function searchDest(){
+let q=document.getElementById('destInput').value.trim();
+if(!q){alert('جگہ لکھو سئیں!');return;}
+setDest(q,q);
 }
-function voice(){
-let SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-if(!SR){alert('Chrome استعمال کرو سئیں!');return;}
-let r=new SR();
-let lang=document.getElementById('lng').value;
-if(lang=='en') r.lang='en-US';
-else if(lang=='ar') r.lang='ar-SA';
-else r.lang='ur-PK';
-r.onresult=(e)=>{document.getElementById('q').value=e.results[0][0].transcript; ask();};
-r.start();
-let chat=document.getElementById('chat'); chat.style.display='block';
-chat.innerHTML+=`<div class="msg bot">🎤 سُݨدا پیاں... بولو سئیں!</div>`;
+
+async function setDest(query, displayName){
+destName=displayName||query;
+document.getElementById('info').innerHTML=`⏳ ${destName} لبھدا پیاں...`;
+speak(` ${destName} لبھدا پیاں سئیں`);
+try{
+let res=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
+let data=await res.json();
+if(data.length==0){document.getElementById('info').innerHTML=`❌ ${destName} نہیں ملی، دوبارہ لکھو`; return;}
+destLat=parseFloat(data[0].lat); destLon=parseFloat(data[0].lon);
+if(destMarker) map.removeLayer(destMarker);
+destMarker=L.marker([destLat,destLon]).addTo(map).bindPopup(destName).openPopup();
+map.setView([destLat,destLon],13);
+document.getElementById('info').innerHTML=`✅ منزل: <span class="dest">${destName}</span><br>📍 ${destLat.toFixed(5)}, ${destLon.toFixed(5)}<br>🔊 ہݨ نیویگیشن شروع کرو!`;
+speak(`${destName} مل گئی سئیں، ہݨ نیویگیشن شروع کرو`, 'ur-PK');
+}catch(e){document.getElementById('info').innerHTML="❌ انٹرنیٹ چیک کرو";}
 }
-let watchId=null, lastLat=null, lastLon=null, totalDistance=0;
-function getDistance(lat1, lon1, lat2, lon2){
-let R=6371, dLat=(lat2-lat1)*Math.PI/180, dLon=(lon2-lon1)*Math.PI/180;
-let a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);
-let c=2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); return R*c;
+
+function getDist(lat1,lon1,lat2,lon2){
+let R=6371,dLat=(lat2-lat1)*Math.PI/180,dLon=(lon2-lon1)*Math.PI/180;
+let a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
-function getloc(){
-let locDiv=document.getElementById('loc');
-locDiv.innerHTML="📍 لوکیشن گھندی پئی اے...";
-speakText("لوکیشن گھندی پئی اے سئیں، تھوڑا انتظار کرو", "saraiki");
-if(navigator.geolocation){
-navigator.geolocation.getCurrentPosition((pos)=>{
-lastLat=pos.coords.latitude; lastLon=pos.coords.longitude;
-let msg="تہاڈی لوکیشن مل گئی سئیں! میں ہر ایک کلومیٹر تے تہاکوں بول کر دسیساں۔ اللہ تہاڈا سفر آسان کرے۔";
-locDiv.innerHTML=`✅ لوکیشن: ${lastLat.toFixed(5)}, ${lastLon.toFixed(5)}<br>🔊 ہر 1 KM تے آواز آ ویسی! کل فاصلہ 0 KM`;
-speakText(msg, "saraiki");
-if(watchId) navigator.geolocation.clearWatch(watchId);
-watchId=navigator.geolocation.watchPosition((pos2)=>{
-let newLat=pos2.coords.latitude, newLon=pos2.coords.longitude;
-let dist=getDistance(lastLat, lastLon, newLat, newLon);
-if(dist>=1){
-totalDistance+=dist;
-let speakMsg=`ماشاءاللہ سئیں! تُساں 1 کلومیٹر ہور طے کر گھدا اے! ہُن تک کل ${totalDistance.toFixed(1)} کلومیٹر سفر تھی گئے۔ اللہ تہاکوں خیر نال پہنچاوے۔`;
-locDiv.innerHTML=`🚶 ${totalDistance.toFixed(2)} KM سفر مکمل<br>📍 نویں لوکیشن: ${newLat.toFixed(4)}, ${newLon.toFixed(4)}<br>🔊 اگلے 1 KM تے ول دسیساں!`;
-speakText(speakMsg, "saraiki");
-lastLat=newLat; lastLon=newLon;
-}
-}, (err)=>{locDiv.innerHTML="❌ Error: "+err.message;}, {enableHighAccuracy:true, maximumAge:0, timeout:10000});
-}, (err)=>{
-locDiv.innerHTML="❌ لوکیشن نہیں ملی، Allow کرو!";
-speakText("لوکیشن نہیں ملی، Allow کرو سئیں", "saraiki");
+
+function useCurrent(){
+if(!navigator.geolocation){alert('GPS نہیں');return;}
+navigator.geolocation.getCurrentPosition(p=>{
+let lat=p.coords.latitude, lon=p.coords.longitude;
+if(userMarker) map.removeLayer(userMarker);
+userMarker=L.marker([lat,lon],{icon:L.icon({iconUrl:'https://cdn-icons-png.flaticon.com/512/64/64113.png',iconSize:[30,30]})}).addTo(map);
+map.setView([lat,lon],13);
+if(destLat){calcAndShow(lat,lon);}
 });
-}else alert("موبائل سپورٹ نئیں کریندا");
 }
-function stopLoc(){
+
+function calcAndShow(uLat,uLon){
+if(!destLat) return;
+let dist=getDist(uLat,uLon,destLat,destLon);
+return dist;
+}
+
+function startNav(){
+if(!destLat){alert('پہلے منزل لکھو! مدینہ، مکہ وغیرہ');return;}
+if(!navigator.geolocation){alert('Location Allow کرو');return;}
+speak(`نیویگیشن شروع سئیں، ${destName} تئیں سفر شروع، ہر کلومیٹر تے بقایا فاصلہ دسیساں`, 'ur-PK');
+document.getElementById('info').innerHTML=`🚀 ${destName} ول سفر شروع...`;
+
+navigator.geolocation.getCurrentPosition(pos=>{
+lastLat=pos.coords.latitude; lastLon=pos.coords.longitude;
+initialDistance=getDist(lastLat,lastLon,destLat,destLon);
+totalTraveled=0;
+if(watchId) navigator.geolocation.clearWatch(watchId);
+watchId=navigator.geolocation.watchPosition(pos2=>{
+let nLat=pos2.coords.latitude, nLon=pos2.coords.longitude;
+let moved=getDist(lastLat,lastLon,nLat,nLon);
+if(moved>=0.05){ // ہر 50 میٹر تے چیک، 1 KM تے بولے
+totalTraveled+=moved;
+lastLat=nLat; lastLon=nLon;
+let remaining=getDist(nLat,nLon,destLat,destLon);
+if(userMarker) map.removeLayer(userMarker);
+userMarker=L.marker([nLat,nLon]).addTo(map);
+
+let isOneKm = Math.floor(totalTraveled) > Math.floor(totalTraveled - moved) || remaining <= 1.1;
+
+if(isOneKm || remaining < 1){
+let msg="";
+if(remaining <= 0.1){
+msg=`ماشاءاللہ سئیں! تُساں ${destName} پہنچ گئے او! الحمدللہ! اللہ تہاڈی حاضری قبول فرماوے!`;
+document.getElementById('info').innerHTML=`🎉 پہنچ گئے! ${destName}<br>✅ کل سفر ${totalTraveled.toFixed(2)} KM`;
+speak(msg,'ur-PK');
+stopNav();
+}else{
+let remainText=remaining.toFixed(1);
+if(remaining <= 1){
+msg=`سئیں! ${destName} بقایا صرف ${remainText} کلومیٹر دور اے! بس تھوڑا جیا فاصلہ باقی اے!`;
+}else{
+msg=`سئیں! ${destName} بقایا ${remainText} کلومیٹر دور اے! ہُن تک ${totalTraveled.toFixed(1)} کلومیٹر سفر تھی گئے!`;
+}
+document.getElementById('info').innerHTML=`📍 تہاڈی لوکیشن: ${nLat.toFixed(4)}, ${nLon.toFixed(4)}<br>🕋 منزل: ${destName}<br>📏 بقایا فاصلہ: <b style="font-size:22px;color:red">${remainText} KM</b><br>🚶 طے شدہ: ${totalTraveled.toFixed(2)} KM / کل ${initialDistance.toFixed(2)} KM`;
+speak(msg,'ur-PK');
+}
+}
+}
+},{enableHighAccuracy:true,maximumAge:0,timeout:10000});
+});
+}
+
+function stopNav(){
 if(watchId){navigator.geolocation.clearWatch(watchId); watchId=null;}
-document.getElementById('loc').innerHTML="🔇 بند - کل "+totalDistance.toFixed(2)+" KM";
-speakText("لوکیشن بند، کل سفر "+totalDistance.toFixed(1)+" کلومیٹر", "saraiki");
-totalDistance=0;
+speak('نیویگیشن بند کر ڈتی','ur-PK');
+}
+
+async function ask(){
+let q=document.getElementById('q').value.trim();
+if(!q) return;
+let box=document.getElementById('ans'); box.style.display='block'; box.innerHTML='⏳ جواب تیار...';
+try{
+let res=await fetch('https://text.pollinations.ai/'+encodeURIComponent('Islamic scholar answer in Saraiki/Urdu: '+q));
+let t=await res.text();
+box.innerHTML=`🤲 ${t}`;
+speak(t,'ur-PK');
+}catch(e){box.innerHTML='سئیں اسلام مکمل دین اے';}
 }
 </script>
 </body>
