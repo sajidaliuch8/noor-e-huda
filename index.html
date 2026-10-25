@@ -2,39 +2,38 @@
 <html lang="ur" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Noor-e-Huda 57 - AI Islami</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نُورِ ہُدٰی - 57 فیچرز - Voice + Location</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Noto Nastaliq Urdu',serif}
-body{background:#062e20;color:#fff;padding:10px}
-.hdr{background:rgba(0,0,0,.5);border:2px solid gold;border-radius:16px;padding:14px;text-align:center}
-.hdr h1{color:gold}
-.card{background:#fff;color:#111;border-radius:16px;padding:14px;margin:12px 0}
-.card h2{color:#0a5c36;border-bottom:2px solid #0a5c36}
-.btn{width:100%;padding:12px;border:0;border-radius:10px;font-weight:bold;margin-top:8px}
+body{background:#062a20;color:#fff;padding:10px}
+.hdr{background:rgba(0,0,0,.6);border:3px solid gold;border-radius:16px;padding:15px;text-align:center}
+.card{background:#fff;color:#111;border-radius:16px;padding:14px;margin:12px 0;border:3px solid #0a5c36}
+.card h2{color:#0a5c36;border-bottom:2px solid gold;padding-bottom:5px;margin-bottom:8px}
+.btn{width:100%;padding:12px;border:0;border-radius:10px;font-weight:bold;margin-top:8px;cursor:pointer;font-size:15px}
 .bg{background:#0a7a42;color:#fff}
 .bd{background:gold;color:#000}
-select,textarea,input{width:100%;padding:10px;border:2px solid #0a7a42;border-radius:10px;margin-top:8px}
-.chat{max-height:400px;overflow-y:auto;background:#f0fdf4;border:2px solid #0a7a42;border-radius:12px;padding:8px;margin-top:10px}
-.msg{margin:6px 0;padding:10px;border-radius:10px}
-.user{background:#0a7a42;color:#fff;margin-left:25px}
-.bot{background:#fff8d0;border:1px solid gold;color:#111;margin-right:15px}
+select,textarea,input{width:100%;padding:10px;border:2px solid #0a7a42;border-radius:10px;margin-top:8px;font-size:15px}
+.chat{max-height:350px;overflow-y:auto;background:#f0fdf4;border:2px solid #0a7a42;border-radius:12px;padding:8px;margin-top:10px}
+.msg{margin:8px 0;padding:10px;border-radius:10px;line-height:1.6}
+.user{background:#0a7a42;color:#fff;margin-left:20px}
+.bot{background:#ffeb80;border:1px solid gold;color:#111;margin-right:10px}
+.loc-box{background:#e8f5e9;border:2px dashed #0a7a42;border-radius:10px;padding:10px;margin-top:8px;text-align:center}
 </style>
 </head>
 <body>
 <div class="hdr">
-<h1>نُورِ ہُدیٰ - 57 فیچرز</h1>
-<p>دنیا دی ہر زبان اچ اسلامی سوال جواب AI</p>
-<p style="color:gold;font-size:12px">Saraiki | Urdu | English | العربية | Hindi | Turkish + 100 Languages</p>
+<h1>نُورِ ہُدٰی - 57 فیچرز</h1>
+<p style="color:gold">AI دی دنیا اچ ہر زبان اچ اسلامی سوال + لوکیشن Voice</p>
+<p style="font-size:12px">Saraiki | Urdu | English | العربية | Hindi | Turkish - 100 Languages</p>
 </div>
 
-<div class="card" style="border:3px solid gold">
-<h2>🤖 فیچر 57: ہر زبان اچ اسلامی سوال - AI جواب</h2>
-<p>کوئی وی سوال پچھو، میں تُہاکوں تُہاڈی زبان اچ جواب ݙساں سئیں!</p>
+<div class="card">
+<h2>🤖 فیچر 57: ہر زبان اچ اسلامی سوال - AI جواب - Voice</h2>
 <select id="lng">
 <option value="saraiki">سرائیکی - Saraiki</option>
-<option value="urdu">اردو - Urdu</option>
+<option value="ur">اردو - Urdu</option>
 <option value="en">English</option>
 <option value="ar">العربية</option>
 <option value="hi">Hindi</option>
@@ -43,52 +42,11 @@ select,textarea,input{width:100%;padding:10px;border:2px solid #0a7a42;border-ra
 </select>
 <textarea id="q" rows="3" placeholder="مثال: نماز دی نیت کیویں؟ What is wudu? غسل کیسے؟"></textarea>
 <button class="btn bg" onclick="ask()">🤲 جواب گھنو - Ask AI</button>
-<button class="btn bd" onclick="voice()">🎤 بولو - Voice</button>
+<button class="btn bd" onclick="voice()">🎤 بولو - Voice Input</button>
+<button class="btn" style="background:#ff9800;color:#000" onclick="speakLast()">🔊 جواب آواز اچ سُنو</button>
+<button class="btn" style="background:red;color:#fff" onclick="speechSynthesis.cancel()">🔇 آواز بند</button>
 <div id="chat" class="chat" style="display:none"></div>
-<div style="background:#fffde7;padding:8px;border-radius:8px;margin-top:8px;font-size:13px">
-💡 مثال: سرائیکی: روزے دی نیت؟ | اردو: نماز؟ | English: How to pray?
-</div>
 </div>
 
-<div class="card"><h2>📍 میڈی لوکیشن</h2><button class="btn bg" onclick="getLoc()">لوکیشن گھنو</button><div id="loc"></div></div>
-
-<script>
-async function ask(){
- let q=document.getElementById('q').value.trim();
- if(!q){alert('سوال لکھو سئیں!');return;}
- let lang=document.getElementById('lng').value;
- let chat=document.getElementById('chat');
- chat.style.display='block';
- chat.innerHTML+=`<div class="msg user">👤 ${q}</div>`;
- chat.innerHTML+=`<div id="ld" class="msg bot">⏳ جواب تیار تھیندا پئے...</div>`;
- 
- let prompt=`You are Noor-e-Huda Islamic scholar. Answer in ${lang} language. If saraiki, use pure Saraiki words like سئیں، میڈا، تُساں. Give Quran Hadith ref. Question: ${q}`;
- try{
-  let res=await fetch('https://text.pollinations.ai/'+encodeURIComponent(prompt));
-  let txt=await res.text();
-  document.getElementById('ld').remove();
-  chat.innerHTML+=`<div class="msg bot">🤲 <b>جواب:</b><br>${txt.replace(/\n/g,'<br>')}<br><button onclick="window.open('https://wa.me/?text='+encodeURIComponent('${q}'))" style="background:gold;padding:5px 8px;border-radius:6px;border:0;margin-top:5px">Share</button></div>`;
- }catch(e){
-  document.getElementById('ld').remove();
-  let fb = q.includes('نماز')||q.includes('pray') ? 
-  'سئیں! نماز اسلام دا تھم اے۔ نیت دل اچ، تکبیر، ثناء، فاتحہ، رکوع، سجدہ۔ قرآن: ان الصلوۃ کانت علی المومنین کتابا موقوتا' :
-  'سئیں! تُہاڈا سوال اہم اے۔ قرآن: وما اتاکم الرسول فخذوہ۔ مزید عالم نال رابطہ کرو۔ اللہ جزا ݙیوے!';
-  chat.innerHTML+=`<div class="msg bot">🤲 ${fb}</div>`;
- }
- chat.scrollTop=chat.scrollHeight;
- document.getElementById('q').value='';
-}
-function voice(){
- if(!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)){alert('Voice نہیں');return;}
- let r=new (window.SpeechRecognition||window.webkitSpeechRecognition)();
- r.lang='ur-PK'; r.onresult=e=>{document.getElementById('q').value=e.results[0][0].transcript}; r.start();
-}
-function getLoc(){
- navigator.geolocation.getCurrentPosition(async p=>{
-  let d=await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${p.coords.latitude}&lon=${p.coords.longitude}`).then(r=>r.json());
-  document.getElementById('loc').innerHTML=`<p>📍 ${d.display_name}</p>`;
- });
-}
-</script>
-</body>
-</html>
+<div class="card" style="border-color:gold">
+<h2>📍 فیچر: لوکیشن - ہر کلومیٹر تے آواز</h
