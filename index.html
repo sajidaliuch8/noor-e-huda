@@ -3,34 +3,46 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>نُورِ ہُدٰی - دنیا کی ہر جگہ کی لوکیشن Voice</title>
+<title>نُورِ ہُدٰی - تصویر + وائس لوکیشن</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Noto Nastaliq Urdu',serif}
 body{background:#062a20;color:#fff;padding:10px}
-.hdr{background:rgba(0,0,0,.6);border:3px solid gold;border-radius:16px;padding:15px;text-align:center}
+.hdr{background:rgba(0,0,0,.7);border:3px solid gold;border-radius:16px;padding:15px;text-align:center}
 .card{background:#fff;color:#111;border-radius:16px;padding:14px;margin:12px 0;border:3px solid #0a5c36}
-.card h2{color:#0a5c36;border-bottom:2px solid gold;padding-bottom:5px;margin-bottom:8px}
 .btn{width:100%;padding:12px;border:0;border-radius:10px;font-weight:bold;margin-top:8px;cursor:pointer;font-size:15px}
-.bg{background:#0a7a42;color:#fff}
-.bd{background:gold;color:#000}
-input,select{width:100%;padding:12px;border:2px solid #0a7a42;border-radius:10px;margin-top:8px;font-size:16px}
-#map{height:300px;border-radius:12px;border:3px solid gold;margin-top:10px}
-.box{background:#e8f5e9;border:2px dashed #0a7a42;border-radius:10px;padding:12px;margin-top:8px;text-align:center;line-height:1.8}
-.dest{font-size:18px;color:#0a5c36;font-weight:bold}
+.bg{background:#0a7a42;color:#fff} .bd{background:gold;color:#000}
+input{width:100%;padding:12px;border:2px solid #0a7a42;border-radius:10px;margin-top:8px;font-size:16px}
+#map{height:320px;border-radius:12px;border:3px solid gold;margin-top:10px}
+.box{background:#e8f5e9;border:2px dashed #0a7a42;border-radius:10px;padding:12px;margin-top:8px;text-align:center;line-height:1.9;font-size:16px}
+.dest{font-size:19px;color:#0a5c36;font-weight:bold}
+.mic{animation:pulse 1s infinite}
+@keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
+.preview{width:100%;max-height:200px;border-radius:10px;border:2px solid gold;margin-top:8px;object-fit:cover}
 </style>
 </head>
 <body>
 <div class="hdr">
-<h1>نُورِ ہُدٰی - عالمی لوکیشن گائیڈ 🕋🌍</h1>
-<p style="color:gold">کوئی بھی جگہ لکھو - فاصلہ ہر KM تے آواز اچ دسیسی</p>
+<h1>نُورِ ہُدٰی - تصویر + وائس لوکیشن 🕋📸🎤</h1>
+<p style="color:gold">تصویر لگاؤ یا بولو - لوکیشن خود وائس اچ دسیسی</p>
 </div>
 
 <div class="card" style="border-color:gold;border-width:4px">
-<h2>📍🕋 منزل لکھو - دنیا کے کسی کونے دی</h2>
-<input id="destInput" placeholder="مثال: Madina Haram, Makkah Haram, لاہور بادشاہی مسجد, دبئی برج خلیفہ"/>
+<h2>📸 تصویر سے لوکیشن لبھو</h2>
+<p style="font-size:13px;color:#555">کسی جگہ کی تصویر کھینچو یا گیلری توں لاؤ - لوکیشن خود دسے گی</p>
+<input type="file" id="imgInput" accept="image/*" capture="environment" onchange="handleImage(this)" style="background:#fff8dc"/>
+<img id="preview" class="preview" style="display:none"/>
+<div id="imgInfo" class="box" style="display:none"></div>
+
+<h2 style="margin-top:15px">🎤 وائس سے جگہ بولو</h2>
+<button class="btn" style="background:#ff0000;color:#fff;font-size:18px" onclick="startVoiceSearch()" id="micBtn">🎤 بولو - مثال: "مدینہ حرم" یا "لاہور بادشاہی مسجد"</button>
+<div id="voiceText" class="box" style="display:none"></div>
+
+<h2 style="margin-top:15px">⌨️ یا لکھ کر لبھو</h2>
+<input id="destInput" placeholder="Madinah Haram, Makkah Haram, لاہور"/>
 <div style="display:flex;gap:6px">
 <button class="btn bg" onclick="searchDest()" style="width:50%">🔍 جگہ لبھو</button>
 <button class="btn bd" onclick="useCurrent()" style="width:50%">📍 میری لوکیشن</button>
@@ -40,17 +52,10 @@ input,select{width:100%;padding:12px;border:2px solid #0a7a42;border-radius:10px
 <button class="btn" style="background:#000;color:gold;border:1px solid gold" onclick="setDest('Makkah Haram Sharif, Saudi Arabia','مکہ مکرمہ حرم شریف')">🕋 مکہ</button>
 <button class="btn" style="background:#000;color:gold;border:1px solid gold" onclick="setDest('Masjid Al Aqsa, Jerusalem','مسجد اقصیٰ')">🕌 اقصیٰ</button>
 </div>
-<div id="info" class="box">کوئی منزل لکھو سئیں... پھر فاصلہ ہر کلومیٹر تے بول کر دسیساں!</div>
+<div id="info" class="box">سئیں! تصویر لگاؤ، یا وائس اچ بولو، یا لکھو... میں ہر کلومیٹر تے بقایا فاصلہ وائس اچ دسیساں!</div>
 <div id="map"></div>
-<button class="btn bg" onclick="startNav()">🚀 نیویگیشن شروع - ہر KM آواز</button>
-<button class="btn" style="background:red;color:white" onclick="stopNav()">🔇 نیویگیشن بند</button>
-</div>
-
-<div class="card">
-<h2>🤖 اسلامی سوال - AI + Voice</h2>
-<input id="q" placeholder="سوال لکھو..."/>
-<button class="btn bg" onclick="ask()">جواب گھنو + آواز</button>
-<div id="ans" class="box" style="display:none"></div>
+<button class="btn bg" onclick="startNav()" style="font-size:18px">🚀 نیویگیشن شروع - ہر KM وائس</button>
+<button class="btn" style="background:red;color:white" onclick="stopNav()">🔇 بند</button>
 </div>
 
 <script>
@@ -66,114 +71,151 @@ u.lang=lang; u.rate=0.85; u.volume=1;
 speechSynthesis.speak(u);
 }
 
-async function searchDest(){
-let q=document.getElementById('destInput').value.trim();
-if(!q){alert('جگہ لکھو سئیں!');return;}
-setDest(q,q);
-}
-
-async function setDest(query, displayName){
-destName=displayName||query;
-document.getElementById('info').innerHTML=`⏳ ${destName} لبھدا پیاں...`;
-speak(` ${destName} لبھدا پیاں سئیں`);
-try{
-let res=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
-let data=await res.json();
-if(data.length==0){document.getElementById('info').innerHTML=`❌ ${destName} نہیں ملی، دوبارہ لکھو`; return;}
-destLat=parseFloat(data[0].lat); destLon=parseFloat(data[0].lon);
-if(destMarker) map.removeLayer(destMarker);
-destMarker=L.marker([destLat,destLon]).addTo(map).bindPopup(destName).openPopup();
-map.setView([destLat,destLon],13);
-document.getElementById('info').innerHTML=`✅ منزل: <span class="dest">${destName}</span><br>📍 ${destLat.toFixed(5)}, ${destLon.toFixed(5)}<br>🔊 ہݨ نیویگیشن شروع کرو!`;
-speak(`${destName} مل گئی سئیں، ہݨ نیویگیشن شروع کرو`, 'ur-PK');
-}catch(e){document.getElementById('info').innerHTML="❌ انٹرنیٹ چیک کرو";}
-}
-
 function getDist(lat1,lon1,lat2,lon2){
 let R=6371,dLat=(lat2-lat1)*Math.PI/180,dLon=(lon2-lon1)*Math.PI/180;
 let a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
 return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
-function useCurrent(){
-if(!navigator.geolocation){alert('GPS نہیں');return;}
-navigator.geolocation.getCurrentPosition(p=>{
-let lat=p.coords.latitude, lon=p.coords.longitude;
-if(userMarker) map.removeLayer(userMarker);
-userMarker=L.marker([lat,lon],{icon:L.icon({iconUrl:'https://cdn-icons-png.flaticon.com/512/64/64113.png',iconSize:[30,30]})}).addTo(map);
-map.setView([lat,lon],13);
-if(destLat){calcAndShow(lat,lon);}
+// 1. تصویر سے لوکیشن
+function handleImage(input){
+let file=input.files[0];
+if(!file) return;
+let preview=document.getElementById('preview');
+preview.src=URL.createObjectURL(file);
+preview.style.display='block';
+let imgInfo=document.getElementById('imgInfo');
+imgInfo.style.display='block';
+imgInfo.innerHTML='⏳ تصویر دی لوکیشن پڑھدا پیاں...';
+
+EXIF.getData(file, function(){
+let lat=EXIF.getTag(this,'GPSLatitude');
+let lon=EXIF.getTag(this,'GPSLongitude');
+let latRef=EXIF.getTag(this,'GPSLatitudeRef')||'N';
+let lonRef=EXIF.getTag(this,'GPSLongitudeRef')||'E';
+if(lat && lon){
+let latDec=lat[0]+lat[1]/60+lat[2]/3600;
+if(latRef=='S') latDec=-latDec;
+let lonDec=lon[0]+lon[1]/60+lon[2]/3600;
+if(lonRef=='W') lonDec=-lonDec;
+imgInfo.innerHTML=`✅ تصویر اچ لوکیشن ملی!<br>📍 ${latDec.toFixed(5)}, ${lonDec.toFixed(5)}<br>⏳ ہن جگہ دا ناں لبھدا پیاں...`;
+speak(`تصویر اچ لوکیشن مل گئی سئیں، ہن جگہ دا ناں لبھدا پیاں`, 'ur-PK');
+reverseGeocode(latDec, lonDec, true);
+}else{
+imgInfo.innerHTML=`⚠️ اس تصویر اچ GPS لوکیشن نہیں اے سئیں! (کیمرہ دی Location آن کرو)<br>لیکن فکر نہ کرو! ہن وائس یا لکھ کر جگہ دسو، میں فاصلہ دس دیساں۔<br><br>📸 اگر تسیں اسی جگہ تے کھڑے او تے <b>میری لوکیشن</b> بٹن دباؤ - میں اس تصویر والی جگہ توں فاصلہ دس دیساں!`;
+speak(`اس تصویر اچ لوکیشن نہیں ملی، کیمرہ دی لوکیشن آن کرو سئیں`, 'ur-PK');
+}
 });
 }
 
-function calcAndShow(uLat,uLon){
-if(!destLat) return;
-let dist=getDist(uLat,uLon,destLat,destLon);
-return dist;
+async function reverseGeocode(lat, lon, setAsDest=false){
+try{
+let res=await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+let data=await res.json();
+let name=data.display_name||`${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+let shortName=data.address?.city||data.address?.town||data.address?.village||data.address?.road||'ایہ جگہ';
+document.getElementById('info').innerHTML=`📸 تصویر والی جگہ: <span class="dest">${name}</span><br>📍 ${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+if(setAsDest){
+destLat=lat; destLon=lon; destName=name;
+if(destMarker) map.removeLayer(destMarker);
+destMarker=L.marker([lat,lon]).addTo(map).bindPopup(name).openPopup();
+map.setView([lat,lon],14);
+speak(`یہ جگہ اے سئیں، ${shortName}، ایتھے توں تہاڈی منزل دا فاصلہ دس دیساں`, 'ur-PK');
+}else{
+let uPos=await getCurrentPos();
+if(uPos){
+let dist=getDist(uPos.lat,uPos.lon,lat,lon);
+document.getElementById('info').innerHTML+=`<br>📏 تہاڈے کولوں فاصلہ: <b style="color:red;font-size:20px">${dist.toFixed(2)} KM</b>`;
+speak(`یہ جگہ اے ${shortName}، تہاڈے کولوں ${dist.toFixed(1)} کلومیٹر دور اے`, 'ur-PK');
+}
+}
+}catch(e){}
 }
 
-function startNav(){
-if(!destLat){alert('پہلے منزل لکھو! مدینہ، مکہ وغیرہ');return;}
-if(!navigator.geolocation){alert('Location Allow کرو');return;}
-speak(`نیویگیشن شروع سئیں، ${destName} تئیں سفر شروع، ہر کلومیٹر تے بقایا فاصلہ دسیساں`, 'ur-PK');
-document.getElementById('info').innerHTML=`🚀 ${destName} ول سفر شروع...`;
+function getCurrentPos(){
+return new Promise(resolve=>{
+navigator.geolocation.getCurrentPosition(p=>resolve({lat:p.coords.latitude,lon:p.coords.longitude}),()=>resolve(null));
+});
+}
 
+// 2. وائس سے جگہ بولو
+function startVoiceSearch(){
+let btn=document.getElementById('micBtn');
+let vbox=document.getElementById('voiceText');
+if(!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)){
+alert('سئیں تہاڈے موبائل اچ وائس سپورٹ نہیں - Chrome استعمال کرو');
+return;
+}
+let Rec=window.SpeechRecognition||window.webkitSpeechRecognition;
+let rec=new Rec();
+rec.lang='ur-PK';
+rec.interimResults=false;
+btn.classList.add('mic');
+btn.innerHTML='🔴 سن رہا ہوں... بولو سئیں!';
+vbox.style.display='block';
+vbox.innerHTML='🎤 سن رہا ہوں... بولو: مدینہ، مکہ، لاہور...';
+speak('بولو سئیں، کون سی جگہ لبھنی اے', 'ur-PK');
+
+rec.onresult=(e)=>{
+let text=e.results[0][0].transcript;
+vbox.innerHTML=`✅ تسیں آکھا: <b>"${text}"</b><br>⏳ لبھدا پیاں...`;
+btn.classList.remove('mic');
+btn.innerHTML='🎤 بولو - مثال: "مدینہ حرم" یا "لاہور بادشاہی مسجد"';
+speak(`تسیں آکھا ${text}، ہن لبھدا پیاں`, 'ur-PK');
+document.getElementById('destInput').value=text;
+setDest(text,text);
+};
+rec.onerror=()=>{
+btn.classList.remove('mic');
+btn.innerHTML='🎤 دوبارہ بولو';
+vbox.innerHTML='❌ وائس نہیں سنی - دوبارہ دباؤ';
+};
+rec.start();
+}
+
+async function setDest(query, displayName){
+destName=displayName||query;
+document.getElementById('info').innerHTML=`⏳ ${destName} لبھدا پیاں...`;
+try{
+let res=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
+let data=await res.json();
+if(data.length==0){document.getElementById('info').innerHTML=`❌ ${destName} نہیں ملی`; speak(`${destName} نہیں ملی سئیں`); return;}
+destLat=parseFloat(data[0].lat); destLon=parseFloat(data[0].lon);
+if(destMarker) map.removeLayer(destMarker);
+destMarker=L.marker([destLat,destLon]).addTo(map).bindPopup(destName).openPopup();
+map.setView([destLat,destLon],13);
+let uPos=await getCurrentPos();
+let distText="";
+if(uPos){ let d=getDist(uPos.lat,uPos.lon,destLat,destLon); distText=`<br>📏 تہاڈے کولوں فاصلہ: <b style="font-size:22px;color:red">${d.toFixed(2)} KM</b><br>🔊 نیویگیشن شروع کرو، ہر KM تے بقایا دسیساں`; }
+document.getElementById('info').innerHTML=`✅ منزل: <span class="dest">${destName}</span><br>📍 ${destLat.toFixed(5)}, ${destLon.toFixed(5)}${distText}`;
+speak(`${destName} مل گئی سئیں، تہاڈے کولوں ${uPos?getDist(uPos.lat,uPos.lon,destLat,destLon).toFixed(1):''} کلومیٹر دور اے، نیویگیشن شروع کرو`, 'ur-PK');
+}catch(e){document.getElementById('info').innerHTML="❌ انٹرنیٹ چیک کرو";}
+}
+function searchDest(){let q=document.getElementById('destInput').value.trim(); if(q) setDest(q,q);}
+function useCurrent(){navigator.geolocation.getCurrentPosition(p=>{let lat=p.coords.latitude,lon=p.coords.longitude; if(userMarker) map.removeLayer(userMarker); userMarker=L.marker([lat,lon]).addTo(map); map.setView([lat,lon],13);});}
+
+function startNav(){
+if(!destLat){alert('پہلے منزل لکھو، بولو، یا تصویر لاؤ!');return;}
+speak(`نیویگیشن شروع، ${destName} ول، ہر کلومیٹر تے بقایا دسیساں`, 'ur-PK');
 navigator.geolocation.getCurrentPosition(pos=>{
-lastLat=pos.coords.latitude; lastLon=pos.coords.longitude;
-initialDistance=getDist(lastLat,lastLon,destLat,destLon);
-totalTraveled=0;
+lastLat=pos.coords.latitude; lastLon=pos.coords.longitude; initialDistance=getDist(lastLat,lastLon,destLat,destLon); totalTraveled=0;
 if(watchId) navigator.geolocation.clearWatch(watchId);
 watchId=navigator.geolocation.watchPosition(pos2=>{
 let nLat=pos2.coords.latitude, nLon=pos2.coords.longitude;
 let moved=getDist(lastLat,lastLon,nLat,nLon);
-if(moved>=0.05){ // ہر 50 میٹر تے چیک، 1 KM تے بولے
-totalTraveled+=moved;
-lastLat=nLat; lastLon=nLon;
+if(moved>=0.05){totalTraveled+=moved; lastLat=nLat; lastLon=nLon;
 let remaining=getDist(nLat,nLon,destLat,destLon);
 if(userMarker) map.removeLayer(userMarker);
 userMarker=L.marker([nLat,nLon]).addTo(map);
-
-let isOneKm = Math.floor(totalTraveled) > Math.floor(totalTraveled - moved) || remaining <= 1.1;
-
-if(isOneKm || remaining < 1){
-let msg="";
-if(remaining <= 0.1){
-msg=`ماشاءاللہ سئیں! تُساں ${destName} پہنچ گئے او! الحمدللہ! اللہ تہاڈی حاضری قبول فرماوے!`;
-document.getElementById('info').innerHTML=`🎉 پہنچ گئے! ${destName}<br>✅ کل سفر ${totalTraveled.toFixed(2)} KM`;
-speak(msg,'ur-PK');
-stopNav();
-}else{
-let remainText=remaining.toFixed(1);
-if(remaining <= 1){
-msg=`سئیں! ${destName} بقایا صرف ${remainText} کلومیٹر دور اے! بس تھوڑا جیا فاصلہ باقی اے!`;
-}else{
-msg=`سئیں! ${destName} بقایا ${remainText} کلومیٹر دور اے! ہُن تک ${totalTraveled.toFixed(1)} کلومیٹر سفر تھی گئے!`;
-}
-document.getElementById('info').innerHTML=`📍 تہاڈی لوکیشن: ${nLat.toFixed(4)}, ${nLon.toFixed(4)}<br>🕋 منزل: ${destName}<br>📏 بقایا فاصلہ: <b style="font-size:22px;color:red">${remainText} KM</b><br>🚶 طے شدہ: ${totalTraveled.toFixed(2)} KM / کل ${initialDistance.toFixed(2)} KM`;
-speak(msg,'ur-PK');
-}
-}
-}
+let isOneKm=Math.floor(totalTraveled)>Math.floor(totalTraveled-moved);
+if(isOneKm||remaining<=1.1){
+if(remaining<=0.1){let msg=`ماشاءاللہ سئیں! ${destName} پہنچ گئے!`; document.getElementById('info').innerHTML=`🎉 پہنچ گئے! ${destName}`; speak(msg); stopNav();}
+else{let msg=remaining<=1?`سئیں! ${destName} بقایا صرف ${remaining.toFixed(1)} کلومیٹر دور اے!`:`سئیں! ${destName} بقایا ${remaining.toFixed(1)} کلومیٹر دور اے، ${totalTraveled.toFixed(1)} کلومیٹر تھی گئے`; document.getElementById('info').innerHTML=`📍 بقایا: <b style="font-size:24px;color:red">${remaining.toFixed(2)} KM</b><br>🕋 ${destName}<br>🚶 طے: ${totalTraveled.toFixed(2)} / کل ${initialDistance.toFixed(2)} KM`; speak(msg);}
+}}
 },{enableHighAccuracy:true,maximumAge:0,timeout:10000});
 });
 }
-
-function stopNav(){
-if(watchId){navigator.geolocation.clearWatch(watchId); watchId=null;}
-speak('نیویگیشن بند کر ڈتی','ur-PK');
-}
-
-async function ask(){
-let q=document.getElementById('q').value.trim();
-if(!q) return;
-let box=document.getElementById('ans'); box.style.display='block'; box.innerHTML='⏳ جواب تیار...';
-try{
-let res=await fetch('https://text.pollinations.ai/'+encodeURIComponent('Islamic scholar answer in Saraiki/Urdu: '+q));
-let t=await res.text();
-box.innerHTML=`🤲 ${t}`;
-speak(t,'ur-PK');
-}catch(e){box.innerHTML='سئیں اسلام مکمل دین اے';}
-}
+function stopNav(){if(watchId){navigator.geolocation.clearWatch(watchId); watchId=null;} speak('نیویگیشن بند');}
 </script>
 </body>
 </html>
